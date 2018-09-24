@@ -1,0 +1,16 @@
+.sconsign.dblite
+*/.sconsign.dblite
+*.o
+*/*.o
+*/*/*.o
+*.mod
+*/*.mod
+*/.DS*
+*/.*.swp
+*/*/*swp
+*/*swp
+*/*.swo
+build
+*pyc
+*/*pyc
+*/*~

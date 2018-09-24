@@ -1,0 +1,14 @@
+n       8192
+dz      0.0762
+type    3 
+nu      0.64
+a       0.86
+iseed   SEED
+lagmax  10
+mu1     0.0
+mu2     0.0
+std1    115.0
+std2    0.0
+ratio1  1.0
+nreal  REAL
+END

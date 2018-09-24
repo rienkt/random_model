@@ -1,0 +1,29 @@
+PROGRAM test_fft1d
+USE nrtype
+USE fft 
+!, ONLY : realft_sp, four1_sp, realft_sp
+IMPLICIT NONE
+! 5T
+INTEGER :: n
+REAL :: dt,f0
+PARAMETER(n=100,dt=1/20,f0=1.0)
+INTEGER :: i
+REAL :: data_t(n)
+COMPLEX :: data_f(n/2)
+do i=1,n
+   data_t(i)=sin(2.*PI*f0*(i-1)*dt)
+enddo
+call realft_sp(data_t,1,data_f)
+open(100,file="time.dat")
+write(*,*) (data_t(i),i=1,n)
+close(100)
+open(100,file="freq_real.dat")
+write(*,*) (real(data_f(i)),i=1,n/2)
+close(100)
+open(100,file="freq_imag.dat")
+write(*,*) (imag(data_f(i)),i=1,n/2)
+close(100)
+open(100,file="freq_cabs.dat")
+write(*,*) (cabs(data_f(i)),i=1,n/2)
+close(100)
+end PROGRAM test_fft1d

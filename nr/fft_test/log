@@ -1,0 +1,7 @@
+ifc: warning: The Intel Fortran driver is now named ifort.  You can suppress this message with '-quiet'
+0_2010
+
+fortcom: Severe: **Internal compiler error: internal abort** Please report this error along with the circumstances in which it occurred in a Software Problem Report.  Note: File and line given may not be explicit cause of this error.
+in file (null), line 0, column 0
+
+compilation aborted for temp3.f90 (code 3)

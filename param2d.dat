@@ -1,0 +1,17 @@
+nx      2048
+nz      2048
+dx      0.1
+dz      0.1
+type    2 
+nu      0.5
+ax      20.0
+az      5.0
+iseed   SEED
+lagmax  10
+mu1     0.0
+mu2     3.0
+std1    1.0
+std2    0.5
+ratio1  0.8
+nreal  REAL
+END

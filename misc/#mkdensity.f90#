@@ -1,0 +1,136 @@
+PROGRAM mkdensity
+!********************************************************************
+! This program will generate single presicion P-wave and S-wave data 
+! and density data from P-wave data
+! [OPTION for S-wave velocity]
+!  1) fixing Vp/Vs ratio
+!  2) fixing Poisson's ratio
+! [OPTION for density]
+!  1) homogeneous
+!  2) Gardner's formula (1974)  
+!*********************************************************************
+USE nrtype
+
+!=====================================================================
+! Define variables
+!=====================================================================
+IMPLICIT NONE
+REAL(SP) :: vporg
+REAL(SP) :: density
+INTEGER  :: option,index,nx,nz
+INTEGER  :: option_density
+INTEGER  :: i, icount, iolen_in, iolen_out
+CHARACTER(LEN=20) :: fname_vpin, fname_rhoout
+
+!=====================================================================
+! Program start
+!=====================================================================
+
+!----------------------------------------------
+! * Set nx and nz
+!-----------------------------------------------
+write(*,*) "Input nx and nz"
+read(*,*) nx,nz
+
+
+!-----------------------------------------------
+! * Input options and decide Vp/Vs
+!-----------------------------------------------
+write(*,*) "Do you want to create S-wave velocity file from P-wave velocity file?"
+read(*,*) option_swave
+if (option_swave == 1) then
+   write(*,*) "Choose conversion method from P-wave velocity to S-wave velocity"
+   write(*,*) "1. fixing Vp/Vs ratio"
+   write(*,*) "2. fixing Poisson's ratio"
+   read(*,*) option
+   
+   if (option == 1) then
+      write(*,*) "Input Vp/Vs ratio"
+      read(*,*) vpvs
+      vsvp=1./vpvs
+   else
+      write(*,*) "Input Poisson's ratio"
+      read(*,*) poisson
+      vsvp=sqrt((1.-2.*poisson)*0.5/(1.-poisson))
+   end if
+endif
+
+!------------------------------------------------------
+! * Option for creating density
+!------------------------------------------------------
+write(*,*) "Do you want to create density file"
+write(*,*) "1. yes 2. no"
+read(*,*) option_density
+
+if ( option_density == 1) then
+   write(*,*) "Choose method to decide density "
+   write(*,*) "1. homogeneous values"
+   write(*,*) "2. Gardner's formula"
+   read(*,*) option
+   if ( option == 1) then
+      write(*,*) "Input density values"
+      read(*,*) density
+   endif
+end if
+
+
+!----------------------------------------------------
+! * Decide index number of input P-wave velocity data
+!----------------------------------------------------
+write(*,*) "Choose type of original P-wave velocity data file name"
+write(*,*) 
+write(*,*) "Which file do you want to convert ?(zz0000??.bin)?"
+read(*,*) index
+write(fname_vpin,'("zz",i5.5,".bin")') index
+write(fname_vpout,'("vp",i5.5,".bin")') index
+write(fname_vsout,'("vs",i5.5,".bin")') index
+write(fname_rhoout,'("rho",i5.5,".bin")') index
+
+!-------------------------------------------
+! * Read P-wave velocity data
+!    - convert to single precision
+!    - convert to S-wave velocity data
+!-------------------------------------------
+inquire(iolength=iolen_in) 1.0_sp
+inquire(iolength=iolen_out) 1.0_sp
+open(100,file=fname_vpin,form='unformatted',access='direct',recl=iolen_in)
+open(101,file=fname_vpout,form='unformatted',access='direct',recl=iolen_out)
+if (option_swave ==1) then
+   open(102,file=fname_vsout,form='unformatted',access='direct',recl=iolen_out)
+end if
+if (option_density==1)  then
+   open(103,file=fname_rhoout,form='unformatted',access='direct',recl=iolen_out)
+end if
+
+icount=1
+do i=1,nz*nx
+!   write(*,*) i,icount
+   read(100,rec=icount) vporg
+   vpout=vporg
+   write(101,rec=icount) vpout
+   if (option_swave == 1) then
+      vsout=vpout*vsvp
+      write(102,rec=icount) vsout
+   end if
+   if (option_density == 1) then
+      if (option ==1) then
+         write(103,rec=icount) density
+      else
+         write(103,rec=iocount) 0.31*vporg**0.25
+      end if
+   end if
+   icount=icount+1
+enddo
+close(100)
+close(101)
+close(102)
+
+!------------------------------------------------------------------
+! possible improvement
+!    - total number of record can be determined while reading data
+!       -> no need to input nx,nz
+!    - adopting input file for single precision
+!-------------------------------------------------------------------
+
+END PROGRAM convPS
+

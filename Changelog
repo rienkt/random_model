@@ -1,0 +1,5 @@
+2008 Mar 18
+	Change 1st and 2nd dimension of output binaries
+	affected files : zz*****.bin, zg*****.bin
+	affected sources : rnd2d.f90, est2d.f90
+	Converting programs should be prepared quite soon.
