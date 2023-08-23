@@ -50,12 +50,12 @@ objects=$(subsobj) $(nrobj) $(libobj)
 
 all: gen est
 
-gen: $(genobj) $(hdrsobj) $(subsobj) 
+gen: $(hdrsobj) $(subsobj) $(genobj)
 	@$(F90) -o $(BINDIR)/rndgen2d \
 	$(LDFLAGS) $(FINCLUDE) -module $(MODDIR)\
 	$(FLIB) $(genobj) $(nrobj) $(libsobj) $(hdrsobj) $(subsobj) 
 
-est: $(estobj) $(hdrsobj) $(subsobj) 
+est: $(hdrsobj) $(subsobj)  $(estobj)
 	@$(F90) -o $(BINDIR)/rndest2d \
 	$(LDFLAGS) $(FINCLUDE) -module $(MODDIR)\
 	$(FLIB) $(estobj) $(nrobj) $(libsobj) $(hdrsobj) $(subsobj) 
