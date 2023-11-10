@@ -7,9 +7,10 @@ include ../Makefile.config
 FINCLUDE=-I$(NRDir) -I$(FFTDir) -I$(MTDir) -I$(ACFDir)
 #FLIBS=-L$(NRDir) -L$(FFTDir) -L$(MTDir) -L$(ACFDir)
 
-est    =estpsd2d.f90
+est    =estpsd2d_v1.f90
 gen    =rnd2d.f90
 genagu =rnd2d_agu.f90
+test   =test.f90
 
 hdrs   =header2d.f90
 subs   =fft2dmod.f90 subrnd2d.f90
@@ -23,6 +24,7 @@ gensrc=$(addprefix $(Rnd2dDir), $(gen))
 estsrc=$(addprefix $(Rnd2dDir), $(est))
 hdrssrc=$(addprefix $(Rnd2dDir), $(hdrs))
 subssrc=$(addprefix $(Rnd2dDir), $(subs))
+testsrc=$(addprefix $(Rnd2dDir), $(test))
 
 # common subroutines
 nrsrc=$(addprefix $(NRDir), $(nr))
@@ -36,7 +38,7 @@ subsobj=$(subs:.f90=.o)
 nrobj=$(addprefix $(NRDir)/, $(nr:.f90=.o))
 libsobj=$(addprefix $(MTDir)/,$(rnd:.f90=.o)) $(addprefix $(FFTDir)/,$(fft:.f=.o)) $(addprefix $(ACFDir)/, $(acf:.f90=.o))
 objects=$(subsobj) $(nrobj) $(libobj)
-
+testobj=$(test:.f90=.o)
 
 .SUFFIXES: .f90 .f .o
 %.o: %.f90 Makefile
@@ -60,10 +62,16 @@ est: $(hdrsobj) $(subsobj)  $(estobj)
 	$(LDFLAGS) $(FINCLUDE) -module $(MODDIR)\
 	$(FLIB) $(estobj) $(nrobj) $(libsobj) $(hdrsobj) $(subsobj) 
 
-genagu: $(genaguobj) $(hdrsobj) $(subsobj) 
+genagu: $(hdrsobj) $(subsobj) $(genaguobj) 
 	@$(F90) -o $(BINDIR)/rndgenagu2d \
 	$(LDFLAGS) $(FINCLUDE) -module $(MODDIR)\
 	$(FLIB) $(genaguobj) $(nrobj) $(libsobj) $(hdrsobj) $(subsobj) 
+
+test: $(testobj)
+	@$(F90) -o $(BINDIR)/test \
+	$(LDFLAGS) $(FINCLUDE) -module $(MODDIR)\
+	$(FLIB) $(testobj) $(nrobj) $(libsobj) $(hdrsobj) $(subsobj) 
+
 
 clean:
 	$(RM) *.o *.mod

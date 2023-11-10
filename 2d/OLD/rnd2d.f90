@@ -1,6 +1,14 @@
-PROGRAM rnd2d_v0
+PROGRAM rnd2d
 !**************************************************************
 ! This program will generate bi-modal random field.
+! 
+! 2007/10/03
+!   Revision
+!   To converge faster, we will change the way to find the bimodal
+!   point.
+!   1. prepare the array
+!   2. 
+!
 !**************************************************************
 !
 USE acflib, ONLY : gauss2df, exp2df,vk2df
@@ -17,7 +25,7 @@ USE mt19937
 ! Define variables
 !=============================================================
 IMPLICIT NONE
-REAL(DP), PARAMETER :: eps=0.01_dp
+REAL(DP), PARAMETER :: eps=0.0001_dp
 REAL(DP), PARAMETER :: large=5.0_dp ! large*std = max(gaussian)
 REAL(DP), PARAMETER :: lim=4.0_dp
 REAL(DP), PARAMETER :: lw=0.15
@@ -39,7 +47,7 @@ REAL(SP) :: ihi,tmpin
 !================================================================
 ! PREPARATION
 !===============================================================
-
+print *, 'in'
 !----------------------------------------------
 ! * Read parameters and allocate allays
 !-----------------------------------------------
@@ -47,11 +55,11 @@ call read_params
 ! Allocate arrays
 allocate(ip(0:2+nint(sqrt(float(max(nx/2,nz))))),w(0:max(nx/4,nz/2)+nx/4))
 allocate(t(0:8*nz-1))
-!allocate(ip2(0:2+nint(sqrt(float(max(nx/2,nz))))),w2(0:max(nx/4,nz/2)),t2(0:8*nz))
-
+print *, 'set'
 allocate(sg0(nx/2+1,nz))
 ip(0)=0; !ip2(0)=0 ! initialization for fft4g.f
 
+print *, 'set2'
 !--------------------------------------------
 ! * Check length of PSD is large enough
 !      for 1D exponential type :-P
@@ -95,10 +103,10 @@ s0(1,1)=0
 if ( ratio1 < 1.0_dp )then
    icount=1
    inquire(iolength=iolength) float(1)
-   print *, iolength
+!   print *, iolength
    open(100,file="sg.bin",form='unformatted',access='direct',recl=iolength)
-      do j=1,nz
-         do i=1,nx/2+1
+      do i=1,nx/2+1
+         do j=1,nz
          ! read(100) ((sg0(i,j),j=1,nz),i=1,nx/2+1)
          read(100,rec=icount) tmpin
          sg0(i,j)=dble(tmpin)
@@ -106,6 +114,7 @@ if ( ratio1 < 1.0_dp )then
       enddo
    enddo
    close(100)
+!   sg0=s0(1:n/2+1,1:nz)
 else
    sg0=s0(1:n/2+1,1:nz);
 end if
@@ -120,39 +129,46 @@ call init_genrand(iseed)   ! MT
 !allocate(zge(nx,nz),zbe(nx,nz),sge(nx/2+1,nz),sbe(nx/2+1,nz))
 ! >>
 do ireal=1,nreal
-   print *, "REALIZATION", ireal
+   print *, ""
+   print *, "[REALIZATION : ", ireal, " ]"
    allocate(theta(nx/2+1,nz),zg(nx,nz),zb(nx,nz))
    !allocate(sb(nx/2+1,nz),sg(nx/2+1,nz))  
    ! * Phase angle
    theta=0.0
+   open(1000,file='theta.dat')
    do i=1,nx/2+1
       do j=1,nz
          theta(i,j)=grnd()
+         write(1000,*) i,j,theta(i,j)
       end do
    end do
+   close(1000)
    theta=theta*TWOPI_D
    
    ! * Pseudo-Standard Gaussian field
 !   print *, "std_gauss_field",size(zg,1),size(zg,2),size(sg0,1),size(sg0,2)
 !   print *, size(theta,1), size(theta,2),dkx,dkz,lim,lw
+   print *, "- generating Gaussian random field"
    call std_gauss_field(zg,sg0,theta,lim,lw) 
-   print *, "calc_psd"
+   !print *, "-cal_psd"
    !call calc_psd(zg,sg,dz)
    
    ! * Bi-modal field
    if (ratio1 < 1) then
-      print *, "cnv_bimodal"
+      print *, "- converting to bimodal field"
       call cnv_bimodal(zb,zg,lim)
-      print *, "calc_psd"
+      !print *, "calc_psd"
       !call calc_psd(zb-sum(zb)/n,sb,dz)
    else
       zb=zg*std1+mu1
 !      sb=sg
    end if
-   ! * Write data   call DATE_AND_TIME (TIME=time)
+   ! * Write data
+   call DATE_AND_TIME (TIME=time)
    print *, 'time = ', time
 
-   write(fname,'("tmp/zz",i5.5,".bin")') ireal
+   print *, "- writing to file"
+   write(fname,'("zz",i5.5,".bin")') ireal
    call write_direct(fname,zb(1:nx0,1:nz0),nx0,nz0)
    
 !         write(100) ((zb(i,j),j=1,nz0),i=1,nx0)
@@ -274,7 +290,8 @@ enddo
 ! << OMAKE
 !-----------------------------------------------------  
 
-END PROGRAM rnd2d_v0
+END PROGRAM rnd2d
+
 SUBROUTINE write_direct(fname,data,nx,nz)
 USE nrtype
 
@@ -284,13 +301,13 @@ REAL(SP) :: tmp
 INTEGER :: nx,nz,count,irecl
 tmp=data(1,1)
 inquire(iolength=irecl) tmp
-print *, irecl
+!print *, irecl
 
 count=1
-print *, "writing",nx,nz
+!print *, "writing",nx,nz
 open(100,file=fname,access="direct",form="unformatted",recl=irecl)
-do j=1,nz
-   do i=1,nx
+do i=1,nx
+   do j=1,nz
       tmp=data(i,j)
       write(100,rec=count) tmp
       count=count+1
